@@ -7,6 +7,10 @@ CAMERA_ID = 0  # Camera ID (usually 0 for built-in webcam)
 CHESSBOARD_SIZE = (9, 6)  # Number of inner corners per chessboard row and column
 OUTPUT_DIRECTORY = 'calibration_images'  # Directory to save calibration images
 
+IMAGE_RES = (1280,720)
+
+
+
 def capture_calibration_images():
     """
     Capture images of a chessboard pattern for camera calibration.
@@ -19,6 +23,10 @@ def capture_calibration_images():
     
     # Open camera
     cap = cv2.VideoCapture(CAMERA_ID)
+
+    # Set width and height
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, IMAGE_RES[0])
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, IMAGE_RES[1])
     
     if not cap.isOpened():
         print(f"Error: Could not open camera {CAMERA_ID}")
