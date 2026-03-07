@@ -3,11 +3,11 @@ import os
 import time
 
 # Capture parameters
-CAMERA_ID = 0  # Camera ID (usually 0 for built-in webcam)
-CHESSBOARD_SIZE = (9, 6)  # Number of inner corners per chessboard row and column
+CAMERA_ID = 2  # Camera ID (usually 0 for built-in webcam)
+CHESSBOARD_SIZE = (10, 7)  # Number of inner corners per chessboard row and column
 OUTPUT_DIRECTORY = 'calibration_images'  # Directory to save calibration images
 
-IMAGE_RES = (1280,720)
+IMAGE_RES = (1920,1080)  # (1280,720)
 
 
 
@@ -44,20 +44,26 @@ def capture_calibration_images():
     print("Press 'q' or Escape to quit")
     print(f"Images will be saved to {OUTPUT_DIRECTORY}")
     
+    while os.path.isfile(os.path.join(OUTPUT_DIRECTORY, f"calibration_{img_counter:02d}.jpg")):
+        img_counter += 1
+    if img_counter > 0:
+        print(f"Starting from image number {img_counter:02d}")
+    
     while True:
         # Capture frame
-        ret, frame = cap.read()
+        ret, orginal_frame = cap.read()
         
         if not ret:
             print("Error: Failed to capture image")
             break
         
         # Convert to grayscale for chessboard detection
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(orginal_frame, cv2.COLOR_BGR2GRAY)
         
         # Find chessboard corners
         ret_chess, corners = cv2.findChessboardCorners(gray, CHESSBOARD_SIZE, None)
         
+        frame = orginal_frame.copy()
         # Draw corners if found
         if ret_chess:
             # Draw and display the corners
@@ -84,7 +90,7 @@ def capture_calibration_images():
         elif key == ord('c'):
             # Save the image
             img_name = os.path.join(OUTPUT_DIRECTORY, f"calibration_{img_counter:02d}.jpg")
-            cv2.imwrite(img_name, frame)
+            cv2.imwrite(img_name, orginal_frame)
             print(f"Captured {img_name}")
             
             img_counter += 1

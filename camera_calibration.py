@@ -6,7 +6,7 @@ import pickle
 
 # Camera calibration parameters
 # You can modify these variables as needed
-CHESSBOARD_SIZE = (9, 6)  # Number of inner corners per chessboard row and column
+CHESSBOARD_SIZE = (10, 7)  # Number of inner corners per chessboard row and column
 SQUARE_SIZE = 2.5         # Size of a square in centimeters
 CALIBRATION_IMAGES_PATH = 'calibration_images/*.jpg'  # Path to calibration images
 OUTPUT_DIRECTORY = 'output'  # Directory to save calibration results
@@ -81,9 +81,13 @@ def calibrate_camera():
     
     print("Calibrating camera...")
     
+    flags = 0
+    # flags = cv2.CALIB_FIX_PRINCIPAL_POINT|cv2.CALIB_ZERO_TANGENT_DIST#|cv2.CALIB_THIN_PRISM_MODEL
+    flags = cv2.CALIB_RATIONAL_MODEL
+    
     # Calibrate camera
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
-        objpoints, imgpoints, gray.shape[::-1], None, None
+        objpoints, imgpoints, gray.shape[::-1], None, None, flags=flags
     )
     
     # Save calibration results
@@ -92,7 +96,8 @@ def calibrate_camera():
         'distortion_coefficients': dist,
         'rotation_vectors': rvecs,
         'translation_vectors': tvecs,
-        'reprojection_error': ret
+        'reprojection_error': ret,
+        'flags': flags
     }
     
     with open(os.path.join(OUTPUT_DIRECTORY, 'calibration_data.pkl'), 'wb') as f:
