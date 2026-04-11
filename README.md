@@ -25,6 +25,62 @@ Install the required packages:
 pip install -r requirements.txt
 ```
 
+## Calibrating a VR Headset
+
+This section describes how to calibrate a VR headset camera using this toolkit. The process involves capturing calibration images, generating a calibration profile, and creating a distortion profile for the headset.
+
+### Prerequisites
+
+- A wide-angle camera
+- A VR headset capable of displaying the calibration pattern
+- The calibration checkerboard pattern (print `board.svg` or display digitally)
+- Access to the shader files for displaying the pattern on your VR headset
+
+### Step 1: Capture Images and Generate Calibration
+
+1. Print or display the checkerboard pattern (`board.svg`)
+2. Run the image capture script:
+   ```
+   python capture_calibration_images.py
+   ```
+3. Capture multiple images of the checkerboard from different angles and positions
+4. Press `c` to capture each image, `q` to quit
+5. Run the calibration script to process the captured images:
+   ```
+   python camera_calibration.py
+   ```
+6. This will generate a calibration profile saved in the `output` directory
+
+### Step 2: View Undistorted Camera Feed
+
+1. Run the live undistortion script:
+   ```
+   python live_undistortion.py
+   ```
+2. This displays the undistorted camera feed with calibration markers overlaid
+
+### Step 3: Display Pattern on VR Headset
+
+1. The calibration pattern needs to be displayed on your VR headset
+2. Shader files for displaying the pattern are included in this repository
+3. Apply these shaders to your VR headset or if you have my VRC avatar, you can use the test pattern on it
+
+### Step 4: Check Distortion Profile
+
+1. Hold the camera up to the VR headset
+2. Position the white markers visible in the live undistortion view
+3. Adjust until the markers align with the pattern displayed on the headset
+
+### Step 5: Create Distortion Profile
+Start with a few points and then work your way up to evenly spaced points every 5 degrees.
+1. Mount the camera in front of the headset lens and align it (you will need to find a suitable mounting solution)
+2. Check the how the patterns line up
+3. Modify the distortion profile iteratively
+4. Adjust until all markers and patterns line up perfectly
+5. Smooth out the derivatives using line-smooth.html
+6. Go back to step 2 and check that it still aligns if you made any modifications an repeat until it lines up and has smooth derivatives
+7. Save the final distortion profile for use
+
 ## Usage
 
 ### Step 1: Capture Calibration Images
