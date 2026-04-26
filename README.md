@@ -29,12 +29,29 @@ pip install -r requirements.txt
 
 This section describes how to calibrate a VR headset camera using this toolkit. The process involves capturing calibration images, generating a calibration profile, and creating a distortion profile for the headset.
 
+There are some examples of it's usage at [https://github.com/sboys3/CustomHeadsetOpenVR/wiki/Micro-OLED-Comparison](https://github.com/sboys3/CustomHeadsetOpenVR/wiki/Micro-OLED-Comparison)
+<table width="100%">
+	<tbody>
+		<tr>
+			<td><img src="https://github.com/sboys3/CustomHeadsetOpenVR/wiki/Files/Micro-OLED-Comparison/Calibration-1.jpg" width="512"></td>
+			<td><img src="https://github.com/sboys3/CustomHeadsetOpenVR/wiki/Files/Micro-OLED-Comparison/Calibration-2.jpg" width="512"></td>
+			<td><img src="https://github.com/sboys3/CustomHeadsetOpenVR/wiki/Files/Micro-OLED-Comparison/Calibration-3.webp" width="512"></td>
+		</tr>
+	</tbody>
+</table>
+
 ### Prerequisites
 
 - A wide-angle camera
 - A VR headset capable of displaying the calibration pattern
 - The calibration checkerboard pattern (print `board.svg` or display digitally)
 - Access to the shader files for displaying the pattern on your VR headset
+
+### Camera Selection
+- You will want a fish eye camera with at least 140 or 150 degrees of diagonal FOV
+- The camera does not need to be expensive. The camera I used initially was around $20.
+- It needs to be a USB camera so that it can run int realtime and interface with OpenCV
+- The form factor needs to be able to get close to the lens.
 
 ### Step 1: Capture Images and Generate Calibration
 
@@ -64,6 +81,10 @@ This section describes how to calibrate a VR headset camera using this toolkit. 
 1. The calibration pattern needs to be displayed on your VR headset
 2. Shader files for displaying the pattern are included in this repository
 3. Apply these shaders to your VR headset or if you have my VRC avatar, you can use the test pattern on it
+
+These diagrams show the FOV and distortion by using a calibrated camera to look through the lens. The thin lines that extend outside the camera are the ground truth overlaid over the calibrated photo while the thicker blurry lines are rendered on the display of the headset. The ground truth boxes have the FOV that they cover from edge to edge listed. Each line is 2.5 degrees apart from its neighbors. The solid gray portions on the edges are outside of what the camera can see.
+
+<img src="https://github.com/sboys3/CustomHeadsetOpenVR/wiki/Files/Micro-OLED-Comparison/Dream-Air-distortion-v1.43.7.webp" width="512">
 
 ### Step 4: Check Distortion Profile
 
