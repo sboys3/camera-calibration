@@ -14,14 +14,15 @@ IMAGE_RES = (1920,1080) # (1280,720)
 SCALE = 1
 
 # Amount to crop in where 0 is just the center of the image with no edges and 1 contains the full undistorted image
+# You will probably have to change this to fit the area of interest from your camera
 CROP_FACTOR = 1
 
 # Values from 0 to 1 of how much to crop in individual sides
-# You will probably have to change these
-CROP_LEFT = 0.1
-CROP_RIGHT = 0.2
-CROP_TOP = 0.1
-CROP_BOTTOM = 0.25
+# You may have to change these if your camera winds up asymmetric after distortion
+CROP_LEFT = 0.0
+CROP_RIGHT = 0.0
+CROP_TOP = 0.0
+CROP_BOTTOM = 0.0
 
 
 def live_undistortion():
@@ -116,11 +117,12 @@ def live_undistortion():
     # Create undistortion maps
     mapx, mapy = cv2.initUndistortRectifyMap(mtx, dist, None, newcameramtx, (width * 4, height * 4), 5)
     
-    print("Press 'q' to quit, 'd' to toggle distortion correction")
+    print("Press 'q' to quit, 'd' to toggle distortion correction, 'a' to toggle angle marks, 'c' to toggle circles")
     
     # Flag to toggle distortion correction
     correct_distortion = True
     show_angles = True
+    draw_circles = False
     
     while True:
         # Capture frame
@@ -201,7 +203,7 @@ def live_undistortion():
                 
                 # Draw concentric labeled boxes with angles using points_from_angles
                 step = int(5) / 2
-                for i in range(1, math.ceil(60 / step) + 1):
+                for i in range(1, math.ceil(70 / step) + 1):
                     angle = i * step
                     # Draw a box with the angle
                     points = points_from_angles([[angle, angle], [angle, -angle], [-angle, -angle], [-angle, angle]])
@@ -211,9 +213,7 @@ def live_undistortion():
                     points[:, 0] *= final_scale_x
                     points[:, 1] *= final_scale_y
                     # print("points", points)
-                    # Draw the box
-                    points = np.int32(points).reshape(-1, 1, 2)
-                    # Draw the box with a color based on the angle
+                    # Draw the box or circle with a color based on the angle
                     # Colors are defined in hsv using i*sqrt(2) for the hue
                     # color = (int(i * math.sqrt(2) * 180) % 180, 150, 255)
                     color = (int(i * (1.0 / 6.0) * 180) % 180, 150, 255)
@@ -221,27 +221,43 @@ def live_undistortion():
                     hsv = cv2.cvtColor(np.uint8([[color]]), cv2.COLOR_HSV2BGR)[0][0]
                     hsv = (int(hsv[0]), int(hsv[1]), int(hsv[2]))
                     # print(hsv)
-                    # Draw the box
-                    cv2.polylines(ui, [points], True, hsv, 2)
-                    # Add text to the inn
-                    # cv2.putText(undistorted, f"{angle * 2} FOV", (int(points[0][0][0]), int(points[0][0][1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                    
+                    if draw_circles:
+                        # Draw a circle using the center and radius matching the square's sides (not corners)
+                        center = (int(np.mean(points[:, 0])), int(np.mean(points[:, 1])))
+                        # Calculate radius as half the width/height of the square (distance from center to side midpoint)
+                        # Use the full bounding box span to get proper width and height
+                        bbox_width = np.max(points[:, 0]) - np.min(points[:, 0])
+                        bbox_height = np.max(points[:, 1]) - np.min(points[:, 1])
+                        radius = int(min(bbox_width, bbox_height) / 2)
+                        cv2.circle(ui, center, radius, hsv, 2)
+                    else:
+                        # Draw the box
+                        cv2.polylines(ui, [np.int32(points).reshape(-1, 1, 2)], True, hsv, 2)
+                    
                     # Add text to inner of each side
+                    points_int = np.int32(points).reshape(-1, 1, 2)
                     for j in range(4):
                         # Calculate the midpoint of the side
-                        midpoint = (int((points[j][0][0] + points[(j+1)%4][0][0]) / 2), int((points[j][0][1] + points[(j+1)%4][0][1]) / 2))
+                        midpoint = (int((points_int[j][0][0] + points_int[(j+1)%4][0][0]) / 2), int((points_int[j][0][1] + points_int[(j+1)%4][0][1]) / 2))
                         # add offset to bring it inside the box
                         if j == 0:
-                            midpoint = (midpoint[0] - 20, midpoint[1] - 10)
+                            midpoint = (midpoint[0] - 20, midpoint[1] - 7)
                         elif j == 1:
                             midpoint = (midpoint[0], midpoint[1] - 5)
                         elif j == 2:
-                            midpoint = (midpoint[0] - 20, midpoint[1] + 20)
+                            midpoint = (midpoint[0] - 20, midpoint[1] + 15)
                         else:
                             midpoint = (midpoint[0] - 25, midpoint[1] - 5)
                         # Add text to the midpoint
-                        text = f"{int(angle * 2)}"
+                        if draw_circles:
+                            # Show radius (half FOV) for circles, include .5 when applicable
+                            radius_val = angle
+                            text = f"{radius_val:g}"
+                        else:
+                            text = f"{int(angle * 2)}"
                         if j == 0 or j == 2:
-                            text += " FOV"
+                            text += " deg" if draw_circles else " FOV"
                         cv2.putText(ui, text, midpoint, cv2.FONT_HERSHEY_SIMPLEX, 0.5, hsv, 1)
 
                 
@@ -284,6 +300,11 @@ def live_undistortion():
         elif key == ord('a'):
             show_angles = not show_angles
             print(f"Angle marks {'ON' if show_angles else 'OFF'}")
+        
+        # 'c' to toggle circles
+        elif key == ord('c'):
+            draw_circles = not draw_circles
+            print(f"Circles {'ON' if draw_circles else 'OFF'}")
     
     # Release camera and close windows
     cap.release()
